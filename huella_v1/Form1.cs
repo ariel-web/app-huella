@@ -1,4 +1,4 @@
-﻿using GriauleFingerprintLibrary;
+using GriauleFingerprintLibrary;
 using GriauleFingerprintLibrary.DataTypes;
 using System;
 using System.Collections.Generic;
@@ -53,9 +53,10 @@ namespace huella_v1
         {
             InitializeComponent();
 
-            ConfigurarBotones();
             ConfigurarBandeja();
+            ConfigurarEventosBotones();
             ConnectRedis();
+            ActualizarEstadosConexion();
 
             bool soloPrueba = PedirCodigoOPrueba();
 
@@ -209,17 +210,11 @@ namespace huella_v1
             return true;
         }
 
-        /// <summary>
-        /// Obtiene el template actual capturado
-        /// </summary>
         public FingerprintTemplate ObtenerTemplateActual()
         {
             return _template;
         }
 
-        /// <summary>
-        /// Elimina un template de la base de datos
-        /// </summary>
         public void EliminarTemplate(string userId)
         {
             if (!EnsureRedis())
@@ -240,9 +235,6 @@ namespace huella_v1
             LogMessage($"🗑️ Templates eliminados para {userId}: {deleted}");
         }
 
-        /// <summary>
-        /// Obtiene la cantidad de templates registrados
-        /// </summary>
         public int CantidadTemplates()
         {
             if (!EnsureRedis())
@@ -254,6 +246,8 @@ namespace huella_v1
         }
 
         #endregion
+
+        #region Configuración y Conexiones
 
         private static string GetConfig(string key, string defaultValue)
         {
@@ -307,10 +301,12 @@ namespace huella_v1
                 redis = ConnectionMultiplexer.Connect(options);
                 redisDb = redis.GetDatabase(database);
                 LogMessage($"✅ Redis conectado: {host}:{port}, DB {database}, patrón {redisKeyPattern}");
+                ActualizarEstadosConexion();
             }
             catch (Exception ex)
             {
                 LogMessage($"⚠️ Redis no conectado: {ex.Message}");
+                ActualizarEstadosConexion();
             }
         }
 
@@ -403,6 +399,10 @@ namespace huella_v1
             }
         }
 
+        #endregion
+
+        #region Utilidades Template y Redis
+
         private bool IsValidTemplate(FingerprintTemplate template)
         {
             return template != null && template.Buffer != null && template.Buffer.Length > 0 && template.Size > 0;
@@ -456,6 +456,10 @@ namespace huella_v1
                 Score = score
             };
         }
+
+        #endregion
+
+        #region Extracción de Template
 
         private FingerprintTemplate ExtractTemplateFromImageFile(string filePath)
         {
@@ -547,68 +551,119 @@ namespace huella_v1
             public int Score { get; set; }
         }
 
-        private void ConfigurarBotones()
+        #endregion
+
+        #region Configuración UI
+
+        private void ConfigurarEventosBotones()
         {
-            Button btnTest = new Button();
-            btnTest.Text = "🔍 Probar Lector";
-            btnTest.Size = new Size(120, 35);
-            btnTest.Location = new Point(10, 10);
-            btnTest.BackColor = Color.LightBlue;
-            btnTest.Click += BtnTest_Click;
-            this.Controls.Add(btnTest);
+            this.btnTest.Click += BtnTest_Click;
+            this.btnConnect.Click += BtnConnect_Click;
+            this.btnIdentify.Click += BtnIdentify_Click;
+            this.btnLoad.Click += BtnLoad_Click;
+            this.btnRedis.Click += BtnRedis_Click;
+            this.btnMinimize.Click += BtnMinimize_Click;
 
-            Button btnConnect = new Button();
-            btnConnect.Text = "🔌 Conectar con Código";
-            btnConnect.Size = new Size(150, 35);
-            btnConnect.Location = new Point(140, 10);
-            btnConnect.BackColor = Color.LightGreen;
-            btnConnect.Click += BtnConnect_Click;
-            this.Controls.Add(btnConnect);
-
-            Button btnMinimize = new Button();
-            btnMinimize.Text = "⬇️ Segundo Plano";
-            btnMinimize.Size = new Size(120, 35);
-            btnMinimize.Location = new Point(300, 10);
-            btnMinimize.BackColor = Color.LightYellow;
-            btnMinimize.Click += BtnMinimize_Click;
-            this.Controls.Add(btnMinimize);
-
-            Button btnIdentify = new Button();
-            btnIdentify.Text = "🔎 Identificar Huella";
-            btnIdentify.Size = new Size(130, 35);
-            btnIdentify.Location = new Point(430, 10);
-            btnIdentify.BackColor = Color.LightCoral;
-            btnIdentify.Click += BtnIdentify_Click;
-            this.Controls.Add(btnIdentify);
-
-            Button btnLoad = new Button();
-            btnLoad.Text = "📂 Cargar Huella";
-            btnLoad.Size = new Size(120, 35);
-            btnLoad.Location = new Point(570, 10);
-            btnLoad.BackColor = Color.LightSteelBlue;
-            btnLoad.Click += BtnLoad_Click;
-            this.Controls.Add(btnLoad);
-
-            Button btnRedis = new Button();
-            btnRedis.Text = "🧪 Ver Redis";
-            btnRedis.Size = new Size(100, 35);
-            btnRedis.Location = new Point(700, 10);
-            btnRedis.BackColor = Color.LightSalmon;
-            btnRedis.Click += BtnRedis_Click;
-            this.Controls.Add(btnRedis);
-
-            Button btnClose = new Button();
-            btnClose.Text = "❌ Salir";
-            btnClose.Size = new Size(80, 35);
-            btnClose.Location = new Point(810, 10);
-            btnClose.BackColor = Color.LightGray;
-            btnClose.Click += (s, e) => this.Close();
-            this.Controls.Add(btnClose);
-
-            richTextBox1.Location = new Point(10, 55);
-            richTextBox1.Size = new Size(880, 380);
-            this.ClientSize = new Size(900, 450);
+            this.btnDashboard.Click += BtnDashboard_Click;
+            this.btnCaptura.Click += BtnCaptura_Click;
+            this.btnIdentificacion.Click += BtnIdentificacion_Click;
+            this.btnConfiguracion.Click += BtnConfiguracion_Click;
+            this.btnLogs.Click += BtnLogs_Click;
         }
+
+        private void ActualizarEstadosConexion()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(ActualizarEstadosConexion));
+                return;
+            }
+
+            bool redisConnected = EnsureRedis();
+            bool wsConnected = ws != null && ws.State == WebSocketState.Open;
+
+            lblRedisStatus.Text = redisConnected ? "● Redis: Conectado" : "● Redis: Inactivo";
+            lblRedisStatus.ForeColor = redisConnected ? Color.FromArgb(16, 185, 129) : Color.FromArgb(239, 68, 68);
+
+            lblWebSocketStatus.Text = wsConnected ? "● WebSocket: Activo" : "● WebSocket: Inactivo";
+            lblWebSocketStatus.ForeColor = wsConnected ? Color.FromArgb(16, 185, 129) : Color.FromArgb(239, 68, 68);
+
+            lblSensorStatus.Text = _authenticated ? "● Sensor: Listo" : "● Sensor: Desconectado";
+            lblSensorStatus.ForeColor = _authenticated ? Color.FromArgb(16, 185, 129) : Color.FromArgb(239, 68, 68);
+        }
+
+        private void ConfigurarBandeja()
+        {
+            notifyIcon = new NotifyIcon();
+            notifyIcon.Icon = SystemIcons.Application;
+            notifyIcon.Text = "Lector de Huellas";
+            notifyIcon.Visible = true;
+            notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
+
+            ContextMenuStrip contextMenu = new ContextMenuStrip();
+            contextMenu.Items.Add("Mostrar", null, (s, e) => RestaurarVentana());
+            contextMenu.Items.Add("Conectar con Código", null, (s, e) => PedirCodigoParaConectar());
+            contextMenu.Items.Add("Salir", null, (s, e) => this.Close());
+            notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        #endregion
+
+        #region Event Handlers - Sidebar
+
+        private void BtnDashboard_Click(object sender, EventArgs e)
+        {
+            LogMessage("📊 Dashboard seleccionado");
+            btnDashboard.FillColor = Color.FromArgb(59, 130, 246);
+            btnCaptura.FillColor = Color.FromArgb(107, 114, 128);
+            btnIdentificacion.FillColor = Color.FromArgb(107, 114, 128);
+            btnConfiguracion.FillColor = Color.FromArgb(107, 114, 128);
+            btnLogs.FillColor = Color.FromArgb(107, 114, 128);
+        }
+
+        private void BtnCaptura_Click(object sender, EventArgs e)
+        {
+            LogMessage("📸 Modo Captura activado");
+            btnDashboard.FillColor = Color.FromArgb(107, 114, 128);
+            btnCaptura.FillColor = Color.FromArgb(59, 130, 246);
+            btnIdentificacion.FillColor = Color.FromArgb(107, 114, 128);
+            btnConfiguracion.FillColor = Color.FromArgb(107, 114, 128);
+            btnLogs.FillColor = Color.FromArgb(107, 114, 128);
+        }
+
+        private void BtnIdentificacion_Click(object sender, EventArgs e)
+        {
+            LogMessage("🔍 Identificación activada");
+            btnDashboard.FillColor = Color.FromArgb(107, 114, 128);
+            btnCaptura.FillColor = Color.FromArgb(107, 114, 128);
+            btnIdentificacion.FillColor = Color.FromArgb(59, 130, 246);
+            btnConfiguracion.FillColor = Color.FromArgb(107, 114, 128);
+            btnLogs.FillColor = Color.FromArgb(107, 114, 128);
+        }
+
+        private void BtnConfiguracion_Click(object sender, EventArgs e)
+        {
+            LogMessage("⚙️ Configuración abierta");
+            btnDashboard.FillColor = Color.FromArgb(107, 114, 128);
+            btnCaptura.FillColor = Color.FromArgb(107, 114, 128);
+            btnIdentificacion.FillColor = Color.FromArgb(107, 114, 128);
+            btnConfiguracion.FillColor = Color.FromArgb(59, 130, 246);
+            btnLogs.FillColor = Color.FromArgb(107, 114, 128);
+        }
+
+        private void BtnLogs_Click(object sender, EventArgs e)
+        {
+            LogMessage("📋 Panel de Logs seleccionado");
+            btnDashboard.FillColor = Color.FromArgb(107, 114, 128);
+            btnCaptura.FillColor = Color.FromArgb(107, 114, 128);
+            btnIdentificacion.FillColor = Color.FromArgb(107, 114, 128);
+            btnConfiguracion.FillColor = Color.FromArgb(107, 114, 128);
+            btnLogs.FillColor = Color.FromArgb(59, 130, 246);
+        }
+
+        #endregion
+
+        #region Event Handlers - Botones de Acción
 
         private void BtnIdentify_Click(object sender, EventArgs e)
         {
@@ -695,20 +750,9 @@ namespace huella_v1
             MostrarRedisDebug(20);
         }
 
-        private void ConfigurarBandeja()
-        {
-            notifyIcon = new NotifyIcon();
-            notifyIcon.Icon = SystemIcons.Application;
-            notifyIcon.Text = "Lector de Huellas";
-            notifyIcon.Visible = true;
-            notifyIcon.DoubleClick += NotifyIcon_DoubleClick;
+        #endregion
 
-            ContextMenuStrip contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("Mostrar", null, (s, e) => RestaurarVentana());
-            contextMenu.Items.Add("Conectar con Código", null, (s, e) => PedirCodigoParaConectar());
-            contextMenu.Items.Add("Salir", null, (s, e) => this.Close());
-            notifyIcon.ContextMenuStrip = contextMenu;
-        }
+        #region Bandeja de Sistema
 
         private void NotifyIcon_DoubleClick(object sender, EventArgs e)
         {
@@ -784,8 +828,8 @@ namespace huella_v1
             if (_testMode)
             {
                 _testMode = false;
-                ((Button)sender).BackColor = Color.LightBlue;
-                ((Button)sender).Text = "🔍 Probar Lector";
+                btnTest.FillColor = Color.FromArgb(59, 130, 246);
+                btnTest.Text = "🔍 Prueba";
                 LogMessage("--- Modo prueba desactivado ---");
 
                 if (_authenticated)
@@ -797,8 +841,8 @@ namespace huella_v1
             else
             {
                 _testMode = true;
-                ((Button)sender).BackColor = Color.LightGreen;
-                ((Button)sender).Text = "🔬 Modo Prueba Activo";
+                btnTest.FillColor = Color.FromArgb(16, 185, 129);
+                btnTest.Text = "🔬 Prueba Activa";
                 LogMessage("=== MODO PRUEBA ACTIVADO ===");
                 LogMessage("Ponga su dedo en el lector para probar");
 
@@ -892,6 +936,10 @@ namespace huella_v1
             }
         }
 
+        #endregion
+
+        #region WebSocket y Conectividad
+
         private async Task LoginWithCodeAndConnect()
         {
             try
@@ -914,6 +962,7 @@ namespace huella_v1
                     LogMessage($"Código válido. Token recibido.");
 
                     await ConnectWebSocketWithToken();
+                    ActualizarEstadosConexion();
 
                     if (_minimizado == false)
                     {
@@ -994,6 +1043,7 @@ namespace huella_v1
                     LogMessage("Conexión perdida, reconectando...");
                     await ReconnectWebSocket();
                 }
+                ActualizarEstadosConexion();
                 await Task.Delay(10000);
             }
         }
@@ -1085,6 +1135,7 @@ namespace huella_v1
                             }
                         }
                         LogMessage("Lector listo. Puede poner su dedo.");
+                        ActualizarEstadosConexion();
 
                         if (_minimizado)
                         {
@@ -1162,6 +1213,10 @@ namespace huella_v1
 
             throw new InvalidOperationException("No hay template en el mensaje ni huella capturada.");
         }
+
+        #endregion
+
+        #region Eventos Sensor Biométrico
 
         private async void fingerPrint_onImage(object source, GriauleFingerprintLibrary.Events.ImageEventArgs ie)
         {
@@ -1326,6 +1381,14 @@ namespace huella_v1
             {
                 this.Invoke(new DelSetImage(SetImage), img);
             }
+            else
+            {
+                if (pbxHuella.Image != null)
+                {
+                    pbxHuella.Image.Dispose();
+                }
+                pbxHuella.Image = img;
+            }
         }
 
         private void fingerPrint_onStatus(object source, GriauleFingerprintLibrary.Events.StatusEventArgs se)
@@ -1339,12 +1402,14 @@ namespace huella_v1
                         this.Invoke(new Action(() => {
                             fingerPrint.StartCapture(source.ToString());
                             LogMessage("🔬 Sensor conectado en modo prueba.");
+                            ActualizarEstadosConexion();
                         }));
                     }
                     else
                     {
                         fingerPrint.StartCapture(source.ToString());
                         LogMessage("🔬 Sensor conectado en modo prueba.");
+                        ActualizarEstadosConexion();
                     }
                 }
                 else if (_authenticated)
@@ -1354,17 +1419,20 @@ namespace huella_v1
                         this.Invoke(new Action(() => {
                             fingerPrint.StartCapture(source.ToString());
                             LogMessage("Sensor conectado. Listo para capturar.");
+                            ActualizarEstadosConexion();
                         }));
                     }
                     else
                     {
                         fingerPrint.StartCapture(source.ToString());
                         LogMessage("Sensor conectado. Listo para capturar.");
+                        ActualizarEstadosConexion();
                     }
                 }
                 else
                 {
                     LogMessage("Sensor conectado. Esperando frontend...");
+                    ActualizarEstadosConexion();
                 }
             }
             else
@@ -1374,19 +1442,30 @@ namespace huella_v1
                     this.Invoke(new Action(() => {
                         fingerPrint.StopCapture(source);
                         LogMessage("Sensor desconectado.");
+                        ActualizarEstadosConexion();
                     }));
                 }
                 else
                 {
                     fingerPrint.StopCapture(source);
                     LogMessage("Sensor desconectado.");
+                    ActualizarEstadosConexion();
                 }
             }
         }
 
+        #endregion
+
+        #region Cierre y Limpieza
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);
+            Form1_FormClosed(this, e);
+        }
+
+        private void Form1_FormClosed(object sender, FormClosedEventArgs e)
+        {
             _cancellationTokenSource.Cancel();
             if (notifyIcon != null)
             {
@@ -1426,6 +1505,10 @@ namespace huella_v1
             redis?.Dispose();
         }
 
+        #endregion
+
+        #region Logging
+
         private void LogMessage(string message)
         {
             if (richTextBox1.InvokeRequired)
@@ -1440,5 +1523,7 @@ namespace huella_v1
         }
 
         private void richTextBox1_TextChanged(object sender, EventArgs e) { }
+
+        #endregion
     }
 }
