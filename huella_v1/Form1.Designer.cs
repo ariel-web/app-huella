@@ -36,7 +36,7 @@ namespace huella_v1
             this.pnlMain = new Guna.UI2.WinForms.Guna2Panel();
 
             // PANEL CENTRAL - Información biométrica
-            this.pnlCentral = new Guna.UI2.WinForms.Guna2ShadowPanel();
+            this.pnlCentral = new Guna.UI2.WinForms.Guna2Panel();
             this.pbxFoto = new Guna.UI2.WinForms.Guna2PictureBox();
             this.pbxHuella = new Guna.UI2.WinForms.Guna2PictureBox();
             this.lblBioTitle = new Guna.UI2.WinForms.Guna2HtmlLabel();
@@ -45,7 +45,7 @@ namespace huella_v1
             this.lblEstadoId = new Guna.UI2.WinForms.Guna2HtmlLabel();
 
             // PANEL INFERIOR - Información del usuario
-            this.pnlInfoUsuario = new Guna.UI2.WinForms.Guna2ShadowPanel();
+            this.pnlInfoUsuario = new Guna.UI2.WinForms.Guna2Panel();
             this.lblDNI = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblNombre = new Guna.UI2.WinForms.Guna2HtmlLabel();
             this.lblCarrera = new Guna.UI2.WinForms.Guna2HtmlLabel();
@@ -55,7 +55,7 @@ namespace huella_v1
             this.lblPiso = new Guna.UI2.WinForms.Guna2HtmlLabel();
 
             // PANEL LOGS - Consola moderna
-            this.pnlLogs = new Guna.UI2.WinForms.Guna2ShadowPanel();
+            this.pnlLogs = new Guna.UI2.WinForms.Guna2Panel();
             this.richTextBox1 = new System.Windows.Forms.RichTextBox();
 
             // BOTONES DE ACCIÓN
@@ -247,7 +247,6 @@ namespace huella_v1
             this.pnlCentral.FillColor = System.Drawing.Color.FromArgb(30, 41, 59);
             this.pnlCentral.Location = new System.Drawing.Point(20, 20);
             this.pnlCentral.Name = "pnlCentral";
-            this.pnlCentral.ShadowColor = System.Drawing.Color.Black;
             this.pnlCentral.Size = new System.Drawing.Size(550, 400);
             this.pnlCentral.TabIndex = 0;
 
@@ -324,7 +323,6 @@ namespace huella_v1
             this.pnlInfoUsuario.FillColor = System.Drawing.Color.FromArgb(30, 41, 59);
             this.pnlInfoUsuario.Location = new System.Drawing.Point(590, 20);
             this.pnlInfoUsuario.Name = "pnlInfoUsuario";
-            this.pnlInfoUsuario.ShadowColor = System.Drawing.Color.Black;
             this.pnlInfoUsuario.Size = new System.Drawing.Size(590, 400);
             this.pnlInfoUsuario.TabIndex = 1;
 
@@ -405,7 +403,6 @@ namespace huella_v1
             this.pnlLogs.FillColor = System.Drawing.Color.FromArgb(30, 41, 59);
             this.pnlLogs.Location = new System.Drawing.Point(20, 430);
             this.pnlLogs.Name = "pnlLogs";
-            this.pnlLogs.ShadowColor = System.Drawing.Color.Black;
             this.pnlLogs.Size = new System.Drawing.Size(1160, 250);
             this.pnlLogs.TabIndex = 2;
 
@@ -545,7 +542,7 @@ namespace huella_v1
         private Guna.UI2.WinForms.Guna2Button btnLogs;
 
         private Guna.UI2.WinForms.Guna2Panel pnlMain;
-        private Guna.UI2.WinForms.Guna2ShadowPanel pnlCentral;
+        private Guna.UI2.WinForms.Guna2Panel pnlCentral;
         private Guna.UI2.WinForms.Guna2PictureBox pbxFoto;
         private Guna.UI2.WinForms.Guna2PictureBox pbxHuella;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblBioTitle;
@@ -553,7 +550,7 @@ namespace huella_v1
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCalidad;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblEstadoId;
 
-        private Guna.UI2.WinForms.Guna2ShadowPanel pnlInfoUsuario;
+        private Guna.UI2.WinForms.Guna2Panel pnlInfoUsuario;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblDNI;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblNombre;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblCarrera;
@@ -562,7 +559,7 @@ namespace huella_v1
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPosicion;
         private Guna.UI2.WinForms.Guna2HtmlLabel lblPiso;
 
-        private Guna.UI2.WinForms.Guna2ShadowPanel pnlLogs;
+        private Guna.UI2.WinForms.Guna2Panel pnlLogs;
         private System.Windows.Forms.RichTextBox richTextBox1;
 
         private Guna.UI2.WinForms.Guna2Panel pnlButtonContainer;
